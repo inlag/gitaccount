@@ -11,6 +11,7 @@ Features:
 - [ ] Modify user
 - [ ] Remove user
 - [ ] List users
+- [ ] User selection
 
 
 ## Contributing
