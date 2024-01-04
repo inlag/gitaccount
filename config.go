@@ -23,13 +23,15 @@ func NewConfig() (*Config, error) {
 
 	fileBytes, err := io.ReadAll(file)
 	if err != nil {
-		return nil, errors.Wrap(err, "reading configuration file is failed")
+		return nil, errors.Wrap(err, "reading file is failed")
 	}
 
-	var users []User
-	err = yaml.Unmarshal(fileBytes, &users)
-	if err != nil {
-		return nil, errors.Wrap(err, "configuration file structure is invalid")
+	var users = make([]User, 0)
+	if len(fileBytes) > 0 {
+		err = yaml.Unmarshal(fileBytes, &users)
+		if err != nil {
+			return nil, errors.Wrap(err, "configuration file structure is invalid")
+		}
 	}
 
 	return &Config{
@@ -43,8 +45,44 @@ func (c *Config) GetUsers() []User {
 }
 
 func (c *Config) SaveUserInfo(name string, email string) error {
-	//TODO implement me
-	panic("implement me")
+	c.users = append(c.users, User{
+		Name:  name,
+		Email: email,
+	})
+
+	usersBytes, err := yaml.Marshal(c.users)
+	if err != nil {
+		return err
+	}
+
+	err = c.saveFile(usersBytes)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (c *Config) saveFile(content []byte) error {
+
+	_ = c.f.Truncate(0)
+	_, _ = c.f.Seek(0, 0)
+
+	_, err := c.f.Write(content)
+	if err != nil {
+		return err
+	}
+
+	err = c.f.Sync()
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (c *Config) CloseFile() error {
+	return c.f.Close()
 }
 
 func GetConfigFile() (*os.File, error) {
