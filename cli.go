@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/pkg/errors"
 	. "github.com/urfave/cli/v2"
@@ -143,6 +144,28 @@ func (c *CLI) Remove() *Command {
 				}
 			}
 
+			return nil
+		},
+	}
+}
+
+func (c *CLI) List() *Command {
+	return &Command{
+		Name:    "list",
+		Usage:   "show list users",
+		Aliases: []string{"l"},
+		Flags:   []Flag{},
+		Action: func(cCtx *Context) error {
+			var response strings.Builder
+
+			// todo: add table print
+			response.WriteString(fmt.Sprintf("number: Name - Email (alias) \n\n"))
+			for i, user := range c.config.GetUsers() {
+				line := fmt.Sprintf("%v: %s - %s (%s) \n", i, user.Name, user.Email, user.Alias)
+				response.WriteString(line)
+			}
+
+			fmt.Println(response.String())
 			return nil
 		},
 	}
