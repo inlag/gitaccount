@@ -44,10 +44,11 @@ func (c *Config) GetUsers() []User {
 	return c.users
 }
 
-func (c *Config) SaveUserInfo(name string, email string) error {
+func (c *Config) SaveUserInfo(name, email, alias string) error {
 	c.users = append(c.users, User{
 		Name:  name,
 		Email: email,
+		Alias: alias,
 	})
 
 	usersBytes, err := yaml.Marshal(c.users)
