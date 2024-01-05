@@ -9,7 +9,7 @@ import (
 
 type Configer interface {
 	GetUsers() []User
-	SaveUserInfo(name string, email string) error
+	SaveUserInfo(name, email, alias string) error
 }
 
 type CLI struct {
@@ -28,6 +28,7 @@ func (c *CLI) App() *App {
 		EnableBashCompletion: true,
 		Commands: []*Command{
 			c.Select(),
+			c.Add(),
 		},
 		Usage: "managing multiple git accounts",
 		Action: func(*Context) error {
@@ -43,10 +44,48 @@ func (c *CLI) Select() *Command {
 		Usage:   "user selection",
 		Aliases: []string{"s"},
 		Flags: []Flag{
-			&StringFlag{Name: "name", Aliases: []string{"n"}},
-			&StringFlag{Name: "email", Aliases: []string{"e"}},
+			&IntFlag{Name: "number", Aliases: []string{"n"}},
+			&StringFlag{Name: "alias", Aliases: []string{"a"}},
 		},
 		Action: func(cCtx *Context) error {
+			number := cCtx.Int("number")
+			alias := cCtx.String("alias")
+
+			users := c.config.GetUsers()
+
+			if alias != "" {
+				for _, user := range users {
+					if user.Alias == alias {
+						// todo: setting current config
+					}
+				}
+			}
+
+			if number != 0 {
+				for i, _ := range users {
+					if i == number {
+						// todo: setting current config
+					}
+				}
+			}
+
+			return nil
+		},
+	}
+}
+
+func (c *CLI) Add() *Command {
+	return &Command{
+		Name:    "add",
+		Usage:   "add user",
+		Aliases: []string{"s"},
+		Flags: []Flag{
+			&StringFlag{Name: "name", Aliases: []string{"n"}},
+			&StringFlag{Name: "email", Aliases: []string{"e"}},
+			&StringFlag{Name: "alias", Aliases: []string{"a"}},
+		},
+		Action: func(cCtx *Context) error {
+
 			name := cCtx.String("name")
 			if name == "" {
 				return errors.New("name cannot is empty")
@@ -57,7 +96,9 @@ func (c *CLI) Select() *Command {
 				return errors.New("email cannot is empty")
 			}
 
-			err := c.config.SaveUserInfo(name, email)
+			alias := cCtx.String("alias")
+
+			err := c.config.SaveUserInfo(name, email, alias)
 			if err != nil {
 				return errors.Wrap(err, "failed to save user information")
 			}
