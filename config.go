@@ -51,12 +51,7 @@ func (c *Config) SaveUserInfo(name, email, alias string) error {
 		Alias: alias,
 	})
 
-	usersBytes, err := yaml.Marshal(c.users)
-	if err != nil {
-		return err
-	}
-
-	err = c.saveFile(usersBytes)
+	err := c.saveFile()
 	if err != nil {
 		return err
 	}
@@ -64,12 +59,16 @@ func (c *Config) SaveUserInfo(name, email, alias string) error {
 	return nil
 }
 
-func (c *Config) saveFile(content []byte) error {
+func (c *Config) saveFile() error {
+	usersBytes, err := yaml.Marshal(c.users)
+	if err != nil {
+		return err
+	}
 
 	_ = c.f.Truncate(0)
 	_, _ = c.f.Seek(0, 0)
 
-	_, err := c.f.Write(content)
+	_, err = c.f.Write(usersBytes)
 	if err != nil {
 		return err
 	}
@@ -84,6 +83,17 @@ func (c *Config) saveFile(content []byte) error {
 
 func (c *Config) CloseFile() error {
 	return c.f.Close()
+}
+
+func (c *Config) RemoveUser(index int) error {
+	c.users = append(c.users[:index], c.users[index+1:]...)
+
+	err := c.saveFile()
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
 
 func GetConfigFile() (*os.File, error) {

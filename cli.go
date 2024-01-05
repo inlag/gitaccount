@@ -10,6 +10,7 @@ import (
 type Configer interface {
 	GetUsers() []User
 	SaveUserInfo(name, email, alias string) error
+	RemoveUser(index int) error
 }
 
 type CLI struct {
@@ -29,6 +30,7 @@ func (c *CLI) App() *App {
 		Commands: []*Command{
 			c.Select(),
 			c.Add(),
+			c.Remove(),
 		},
 		Usage: "managing multiple git accounts",
 		Action: func(*Context) error {
@@ -78,7 +80,7 @@ func (c *CLI) Add() *Command {
 	return &Command{
 		Name:    "add",
 		Usage:   "add user",
-		Aliases: []string{"s"},
+		Aliases: []string{"a"},
 		Flags: []Flag{
 			&StringFlag{Name: "name", Aliases: []string{"n"}},
 			&StringFlag{Name: "email", Aliases: []string{"e"}},
@@ -101,6 +103,44 @@ func (c *CLI) Add() *Command {
 			err := c.config.SaveUserInfo(name, email, alias)
 			if err != nil {
 				return errors.Wrap(err, "failed to save user information")
+			}
+
+			return nil
+		},
+	}
+}
+
+func (c *CLI) Remove() *Command {
+	return &Command{
+		Name:    "remove",
+		Usage:   "remove selected user",
+		Aliases: []string{"r"},
+		Flags: []Flag{
+			&IntFlag{Name: "number", Aliases: []string{"n"}},
+			&StringFlag{Name: "alias", Aliases: []string{"a"}},
+		},
+		Action: func(cCtx *Context) error {
+			number := cCtx.Int("number")
+			alias := cCtx.String("alias")
+
+			users := c.config.GetUsers()
+
+			if alias != "" {
+				for i, user := range users {
+					if user.Alias == alias {
+						err := c.config.RemoveUser(i)
+						if err != nil {
+							return err
+						}
+					}
+				}
+			}
+
+			if number != 0 {
+				err := c.config.RemoveUser(number)
+				if err != nil {
+					return err
+				}
 			}
 
 			return nil
