@@ -32,6 +32,7 @@ func (c *CLI) App() *App {
 			c.Select(),
 			c.Add(),
 			c.Remove(),
+			c.List(),
 		},
 		Usage: "managing multiple git accounts",
 		Action: func(*Context) error {
@@ -59,15 +60,15 @@ func (c *CLI) Select() *Command {
 			if alias != "" {
 				for _, user := range users {
 					if user.Alias == alias {
-						// todo: setting current config
+						return SetGitConfig(user)
 					}
 				}
 			}
 
 			if number != 0 {
-				for i, _ := range users {
+				for i, user := range users {
 					if i == number {
-						// todo: setting current config
+						return SetGitConfig(user)
 					}
 				}
 			}
